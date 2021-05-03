@@ -33,7 +33,11 @@ ReverbSc verb;
 AnalogControl verb_control1, verb_control2, verb_control3, verb_control4;
 Parameter verb_feedback, verb_lp_freq, verb_mix, verb_send;
 
+static Metro clock;
+bool gate1_state = true;
 dsy_gpio gate_output1, gate_output2;
+
+uint32_t gate_end = 0;
 
 static void AudioCallback(float *in, float *out, size_t size)
 {
@@ -43,8 +47,14 @@ static void AudioCallback(float *in, float *out, size_t size)
 	{
 		sig = in[i];
 
+		if (clock.Process())
+		{
+			dsy_gpio_write(&gate_output1, gate1_state);
+			gate1_state = !gate1_state;
+		}
+
 		dry_rate = verb_mix.Process();
-		send_rate = verb_mix.Process();
+		send_rate = verb_send.Process();
 		bitcrush.SetFreq(bitcrush_rate.Process());
 
 		sig = bitcrush.Process(sig);
@@ -95,16 +105,18 @@ int main(void)
 	verb.Init(sample_rate);
 
 	verb_control1.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL1), sample_rate);
-	verb_feedback.Init(verb_control1, 0.f, 0.9f, Parameter::LINEAR);
+	verb_feedback.Init(verb_control1, 0.f, 0.99f, Parameter::LINEAR);
 
 	verb_control2.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL2), sample_rate);
-	verb_lp_freq.Init(verb_control2, 0.f, sample_rate, Parameter::EXPONENTIAL);
+	verb_lp_freq.Init(verb_control2, 0.f, 20000.0f, Parameter::EXPONENTIAL);
 
 	verb_control3.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL3), sample_rate);
 	verb_mix.Init(verb_control3, 0.f, 1.0f, Parameter::LINEAR);
 
 	verb_control4.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL4), sample_rate);
 	verb_send.Init(verb_control4, 0.f, 1.0f, Parameter::LINEAR);
+
+	clock.Init(1.0f, sample_rate);
 
 	setup_gate_output(PIN_GATE_OUT1, &gate_output1);
 	setup_gate_output(PIN_GATE_OUT2, &gate_output2);
