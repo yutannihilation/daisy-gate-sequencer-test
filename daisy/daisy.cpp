@@ -4,44 +4,57 @@
 #define PIN_GATE_OUT1 13
 #define PIN_GATE_OUT2 14
 
-#define PIN_BITCRUSH_CONTROL 15
+#define PIN_CONTROLS_BASE 15
+#define OFFSET_BITCRUSH_CONTROL 0
+#define OFFSET_REVERB_CONTROL1 1
+#define OFFSET_REVERB_CONTROL2 2
+#define OFFSET_REVERB_CONTROL3 3
+#define OFFSET_REVERB_CONTROL4 4
+
+const size_t num_controls = 5;
+uint8_t controls[num_controls] = {
+	OFFSET_BITCRUSH_CONTROL,
+	OFFSET_REVERB_CONTROL1,
+	OFFSET_REVERB_CONTROL2,
+	OFFSET_REVERB_CONTROL3,
+	OFFSET_REVERB_CONTROL4,
+};
 
 using namespace daisysp;
 using namespace daisy;
 
 static DaisySeed seed;
 
-static SampleRateReducer bitcrush;
+SampleRateReducer bitcrush;
+AnalogControl bitcrush_control;
+Parameter bitcrush_rate;
+
+ReverbSc verb;
+AnalogControl verb_control1, verb_control2, verb_control3, verb_control4;
+Parameter verb_feedback, verb_lp_freq, verb_mix, verb_send;
 
 dsy_gpio gate_output1, gate_output2;
 
 static void AudioCallback(float *in, float *out, size_t size)
 {
-	float sig, ctrl;
-
-	ctrl = seed.adc.GetFloat(0);
-
-	if (ctrl > 0.5)
-	{
-		dsy_gpio_write(&gate_output1, true); // set high
-	}
-	else
-	{
-		dsy_gpio_write(&gate_output1, false); // set low
-	}
+	float sig, dry_rate, send_rate, wet1, wet2;
 
 	for (size_t i = 0; i < size; i += 2)
 	{
 		sig = in[i];
 
-		bitcrush.SetFreq(powf(ctrl, 3.0) + 0.001);
+		dry_rate = verb_mix.Process();
+		send_rate = verb_mix.Process();
+		bitcrush.SetFreq(bitcrush_rate.Process());
+
 		sig = bitcrush.Process(sig);
 
-		// left out
-		out[i] = sig;
+		verb.SetFeedback(verb_feedback.Process());
+		verb.SetLpFreq(verb_lp_freq.Process());
+		verb.Process(sig * send_rate, sig * send_rate, &wet1, &wet2);
 
-		// right out
-		out[i + 1] = sig;
+		out[i] = sig * dry_rate + wet1;
+		out[i + 1] = sig * dry_rate + wet2;
 	}
 }
 
@@ -54,17 +67,44 @@ void setup_gate_output(const int pin, dsy_gpio *gpio)
 	dsy_gpio_write(gpio, false); // set low
 }
 
+void setup_adcConfig(AdcChannelConfig *adcConfig, const int offset)
+{
+	adcConfig[offset].InitSingle(seed.GetPin(PIN_CONTROLS_BASE + offset));
+};
+
 int main(void)
 {
-	// initialize seed hardware and oscillator daisysp module
+	float sample_rate;
 	seed.Configure();
 	seed.Init();
-	bitcrush.Init();
+	sample_rate = seed.AudioSampleRate();
 
-	// Use pin 16 to read the voltage of the knob
-	AdcChannelConfig adcConfig;
-	adcConfig.InitSingle(seed.GetPin(PIN_BITCRUSH_CONTROL));
-	seed.adc.Init(&adcConfig, 1);
+	AdcChannelConfig adcConfig[num_controls];
+	for (uint8_t i = 0; i < num_controls; i++)
+	{
+		setup_adcConfig(adcConfig, controls[i]);
+	}
+	seed.adc.Init(adcConfig, num_controls);
+
+	// setup bitcrush
+	bitcrush.Init();
+	bitcrush_control.Init(seed.adc.GetPtr(OFFSET_BITCRUSH_CONTROL), sample_rate);
+	bitcrush_rate.Init(bitcrush_control, 0.001, 1.0, Parameter::EXPONENTIAL);
+
+	//setup reverb
+	verb.Init(sample_rate);
+
+	verb_control1.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL1), sample_rate);
+	verb_feedback.Init(verb_control1, 0.f, 0.9f, Parameter::LINEAR);
+
+	verb_control2.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL2), sample_rate);
+	verb_lp_freq.Init(verb_control2, 0.f, sample_rate, Parameter::EXPONENTIAL);
+
+	verb_control3.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL3), sample_rate);
+	verb_mix.Init(verb_control3, 0.f, 1.0f, Parameter::LINEAR);
+
+	verb_control4.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL4), sample_rate);
+	verb_send.Init(verb_control4, 0.f, 1.0f, Parameter::LINEAR);
 
 	setup_gate_output(PIN_GATE_OUT1, &gate_output1);
 	setup_gate_output(PIN_GATE_OUT2, &gate_output2);
