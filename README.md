@@ -4,6 +4,11 @@
 
 * <https://www.electro-smith.com/daisy/daisy>
 
+### ドキュメント
+
+* libDaisy（ハードウェア制御関連）: <https://electro-smith.github.io/libDaisy/index.html>
+* DaisySP（DSP関連）: <https://electro-smith.github.io/DaisySP/index.html>
+
 ## 考慮点
 
 * トリガーではなくゲートで動く楽器用のシーケンサー。

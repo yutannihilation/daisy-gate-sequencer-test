@@ -27,11 +27,11 @@ using namespace daisy;
 
 static DaisySeed seed;
 
-SampleRateReducer bitcrush;
+static SampleRateReducer bitcrush;
 AnalogControl bitcrush_control;
 Parameter bitcrush_rate;
 
-ReverbSc verb;
+static ReverbSc verb;
 AnalogControl verb_control1, verb_control2, verb_control3, verb_control4;
 Parameter verb_feedback, verb_lp_freq, verb_mix, verb_send;
 
@@ -42,11 +42,13 @@ dsy_gpio gate_output1, gate_output2;
 uint32_t gate_end = 0;
 
 static void AudioCallback(float *in, float *out, size_t size) {
-  float sig, dry_rate, send_rate, wet1, wet2;
+  float sig, sig_tmp, dry_rate, send_rate, wet1, wet2;
 
   for (size_t i = 0; i < size; i += 2) {
     sig = in[i];
 
+    // Metro needs to be processed in this for loop, otherwise it's not
+    // triggered.
     if (clock.Process()) {
       dsy_gpio_write(&gate_output1, gate1_state);
       gate1_state = !gate1_state;
@@ -57,10 +59,11 @@ static void AudioCallback(float *in, float *out, size_t size) {
     bitcrush.SetFreq(bitcrush_rate.Process());
 
     sig = bitcrush.Process(sig);
+    sig_tmp = sig * send_rate;
 
     verb.SetFeedback(verb_feedback.Process());
     verb.SetLpFreq(verb_lp_freq.Process());
-    verb.Process(sig * send_rate, sig * send_rate, &wet1, &wet2);
+    verb.Process(sig_tmp, sig_tmp, &wet1, &wet2);
 
     out[i] = sig * dry_rate + wet1;
     out[i + 1] = sig * dry_rate + wet2;
