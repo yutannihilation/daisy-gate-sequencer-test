@@ -39,7 +39,7 @@ bool Gate::Process() {
     }
 
     ellapsed_ += inc_;
-    if (ellapsed_ > gate_length_) {
+    if (ellapsed_ > gate_length_ + gate_delay_) {
       state_ = GATE_OFF;
     }
   }
