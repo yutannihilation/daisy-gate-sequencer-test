@@ -22,16 +22,14 @@ public:
   bool Process();
 
   // Starts the gate
-  inline void Trigger() { trigger_ = 1; }
-
-  // Sets the length of the gate in seconds
-  inline void SetLength(float length) { gate_length_ = length; }
+  void Trigger(float length, float delay);
 
 private:
   dsy_gpio *pin_;     // Output pin
   float sample_rate_; // samping rate
   float inc_;         // length of one loop
   float gate_length_; // gate length in seconds
+  float gate_delay_;  // seconds before starting gate
   float ellapsed_;    // elapsed time since the gate became high in seconds
   uint8_t trigger_;   // if triggered, 1
   uint8_t state_;     // whether the gate is on or offf

@@ -14,8 +14,14 @@ void Gate::Init(float sample_rate, dsy_gpio *pin) {
   ellapsed_ = 0.0f;
 }
 
+void Gate::Trigger(float length, float delay) {
+  trigger_ = 1;
+  gate_length_ = length;
+  gate_delay_ = delay;
+}
+
 bool Gate::Process() {
-  bool out = true;
+  bool out = false;
 
   if (trigger_) {
     trigger_ = 0;
@@ -27,9 +33,11 @@ bool Gate::Process() {
     }
   }
 
-  if (state_ == GATE_OFF) {
-    out = false;
-  } else {
+  if (state_ == GATE_ON) {
+    if (ellapsed_ > gate_delay_) {
+      out = true;
+    }
+
     ellapsed_ += inc_;
     if (ellapsed_ > gate_length_) {
       state_ = GATE_OFF;

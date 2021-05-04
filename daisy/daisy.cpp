@@ -51,9 +51,12 @@ static void AudioCallback(float *in, float *out, size_t size) {
     // NOTE: Metro needs to be processed in this for loop, otherwise it's rarely
     // triggered.
     if (clock.Process()) {
-      gate1.Trigger();
+      gate1.Trigger(0.5f, 0.0f);
+      gate2.Trigger(0.5f, 0.2f);
     }
+
     gate1.Process();
+    gate2.Process();
 
     dry_rate = verb_mix.Process();
     send_rate = verb_send.Process();
@@ -120,6 +123,7 @@ int main(void) {
   setup_gate_output(PIN_GATE_OUT1, &gate_output1);
   gate1.Init(sample_rate, &gate_output1);
   setup_gate_output(PIN_GATE_OUT2, &gate_output2);
+  gate2.Init(sample_rate, &gate_output2);
 
   // start callback
   seed.adc.Start();
