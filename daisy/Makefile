@@ -2,7 +2,7 @@
 TARGET = daisy
 
 # Sources
-CPP_SOURCES = daisy.cpp
+CPP_SOURCES = daisy.cpp gate.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../lib/libDaisy
