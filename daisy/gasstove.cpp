@@ -1,6 +1,7 @@
 #include "daisy_seed.h"
 #include "daisysp.h"
 #include "gate.h"
+#include "pattern.h"
 
 #define PIN_GATE_OUT1 13
 #define PIN_GATE_OUT2 14
@@ -36,6 +37,7 @@ static ReverbSc verb;
 AnalogControl verb_control1, verb_control2, verb_control3, verb_control4;
 Parameter verb_feedback, verb_lp_freq, verb_mix, verb_send;
 
+static gasstove::Pattern pattern;
 static Metro clock;
 static gasstove::Gate gate1, gate2;
 dsy_gpio gate_output1, gate_output2;
@@ -48,15 +50,7 @@ static void AudioCallback(float *in, float *out, size_t size) {
   for (size_t i = 0; i < size; i += 2) {
     sig = in[i];
 
-    // NOTE: Metro needs to be processed in this for loop, otherwise it's rarely
-    // triggered.
-    if (clock.Process()) {
-      gate1.Trigger(0.5f, 0.0f);
-      gate2.Trigger(0.5f, 0.2f);
-    }
-
-    gate1.Process();
-    gate2.Process();
+    pattern.Process();
 
     dry_rate = verb_mix.Process();
     send_rate = verb_send.Process();
@@ -124,6 +118,8 @@ int main(void) {
   gate1.Init(sample_rate, &gate_output1);
   setup_gate_output(PIN_GATE_OUT2, &gate_output2);
   gate2.Init(sample_rate, &gate_output2);
+
+  pattern.Init(sample_rate, &clock, &gate1, &gate2);
 
   // start callback
   seed.adc.Start();
