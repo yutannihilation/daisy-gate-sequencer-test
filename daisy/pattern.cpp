@@ -1,4 +1,5 @@
 #include "pattern.h"
+#include "clock.h"
 
 // clang-format off
 #define MASK_GATE1_ON    (uint8_t)(1 << 0) // 0000 0001
@@ -11,28 +12,22 @@
 
 using namespace gasstove;
 
+struct SubStep {
+  float length; // gate length
+  float delay;  // delay before the gate starts
+  float sleep;  // delay before the next substep
+};
+
 // clang-format off
-const uint8_t pattern1[] = {
-  0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00010001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00110001, 0b00000001, 0b00110001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00010001, 0b00000001, 0b00010001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00010001, 0b00110001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000001, 0b00000001, 0b00110001, 0b00000001, 0b00010001, 0b00000001, 0b00110001, 0b00000001,
-  0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00000001, 0b00000001, 0b00000001,
-  0b00000000, 0b00000001, 0b00000001, 0b00000001, 0b00010001, 0b00110001, 0b00010001, 0b00110001,
+const SubStep substep_pattern1[] = {
+  SubStep{1.0f, 0.0f, 0.0f},
+  SubStep{1.0f, 0.0f, 1.0f},
+  SubStep{0.3f, 0.0f, 0.1f},
+  SubStep{1.0f, 0.0f, 1.0f},
 };
 // clang-format on
 
-void Pattern::Init(float sample_rate, Metro *clock, Gate *gate1, Gate *gate2) {
+void Pattern::Init(float sample_rate, Clock *clock, Gate *gate1, Gate *gate2) {
   sample_rate_ = sample_rate;
   clock_ = clock;
 
@@ -48,11 +43,10 @@ void Pattern::Init(float sample_rate, Metro *clock, Gate *gate1, Gate *gate2) {
 
 void Pattern::Process() {
   if (clock_->Process()) {
-    float delay1 = (pattern1[cur_step_] & MASK_GATE1_DELAY) ? delay_ : 0.0f;
-    float swing = (cur_step_ % 2) == 1 ? swing_ : 0.0f;
+    cur_substep_ = 0;
 
-    if (pattern1[cur_step_] & MASK_GATE1_ON) {
-      gates_[cur_gate_]->Trigger(LENGTH_ONESHOT, delay1 + swing);
+    if (true) {
+      gates_[cur_gate_]->Trigger(LENGTH_ONESHOT, 0.0f);
       cur_gate_ = (cur_gate_ + 1) % num_of_gates;
     }
 
@@ -73,4 +67,5 @@ void Pattern::Reset() {
 
   cur_gate_ = 0;
   cur_step_ = 0;
+  cur_substep_ = 0;
 }

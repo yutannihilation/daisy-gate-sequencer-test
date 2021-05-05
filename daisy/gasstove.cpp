@@ -1,5 +1,7 @@
 #include "daisy_seed.h"
 #include "daisysp.h"
+
+#include "clock.h"
 #include "gate.h"
 #include "pattern.h"
 
@@ -38,7 +40,7 @@ AnalogControl verb_control1, verb_control2, verb_control3, verb_control4;
 Parameter verb_feedback, verb_lp_freq, verb_mix, verb_send;
 
 static gasstove::Pattern pattern;
-static Metro clock;
+static gasstove::Clock clock;
 static gasstove::Gate gate1, gate2;
 dsy_gpio gate_output1, gate_output2;
 
@@ -112,7 +114,7 @@ int main(void) {
   verb_control4.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL4), sample_rate);
   verb_send.Init(verb_control4, 0.f, 1.0f, Parameter::LINEAR);
 
-  clock.Init(3.0f, sample_rate);
+  clock.Init(60.0f, sample_rate);
 
   setup_gate_output(PIN_GATE_OUT1, &gate_output1);
   gate1.Init(sample_rate, &gate_output1);

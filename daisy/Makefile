@@ -2,7 +2,7 @@
 TARGET = gasstove
 
 # Sources
-CPP_SOURCES = gasstove.cpp gate.cpp pattern.cpp
+CPP_SOURCES = gasstove.cpp gate.cpp pattern.cpp clock.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../lib/libDaisy
