@@ -9,9 +9,7 @@ void Gate::Init(float sample_rate, dsy_gpio *pin) {
   inc_ = 1.0f / sample_rate_;
   gate_length_ = 0.5f;
 
-  state_ = GATE_OFF;
-  trigger_ = 0;
-  ellapsed_ = 0.0f;
+  Gate::Reset();
 }
 
 void Gate::Trigger(float length, float delay) {
@@ -46,4 +44,13 @@ bool Gate::Process() {
 
   dsy_gpio_write(pin_, out);
   return out;
+}
+
+void Gate::Reset() {
+  state_ = GATE_OFF;
+  trigger_ = 0;
+  ellapsed_ = 0.0f;
+
+  // turn off the gate
+  dsy_gpio_write(pin_, false);
 }
