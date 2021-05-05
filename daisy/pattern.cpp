@@ -1,12 +1,37 @@
 #include "pattern.h"
 
-#define MASK_GATE1_ON (uint8_t)(1 << 0) // 0000 0001
-#define MASK_GATE2_ON (uint8_t)(1 << 1) // 0000 0010
+// clang-format off
+#define MASK_GATE1_ON    (uint8_t)(1 << 0) // 0000 0001
+#define MASK_GATE1_DELAY (uint8_t)(1 << 1) // 0000 0010
+#define MASK_GATE2_ON    (uint8_t)(1 << 4) // 0001 0000
+#define MASK_GATE2_DELAY (uint8_t)(1 << 5) // 0010 0000
+
+#define LENGTH_ONESHOT   0.124f
+#define DELAY            0.11f
+// clang-format on
 
 using namespace gasstove;
 
-const uint8_t pattern1[] = {0b00000001, 0b00000011, 0b00000001, 0b00000011,
-                            0b00000001, 0b00000011, 0b00000001, 0b00000011};
+// clang-format off
+const uint8_t pattern1[] = {
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00010000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00110000, 0b00000001, 0b00110000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00010001, 0b00000000, 0b00010000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00010000, 0b00110000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000001, 0b00000000, 0b00110000, 0b00000000, 0b00010001, 0b00000000, 0b00110000, 0b00000000,
+  0b00000001, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00000000, 0b00000000, 0b00000000,
+  0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00010001, 0b00110001, 0b00010001, 0b00110001,
+};
+// clang-format on
 
 void Pattern::Init(float sample_rate, Metro *clock, Gate *gate1, Gate *gate2) {
   sample_rate_ = sample_rate;
@@ -14,22 +39,25 @@ void Pattern::Init(float sample_rate, Metro *clock, Gate *gate1, Gate *gate2) {
   gate1_ = gate1;
   gate2_ = gate2;
 
-  max_step_ = 8;
+  max_step_ = 128;
 
   Pattern::Reset();
 }
 
 void Pattern::Process() {
   if (clock_->Process()) {
+    float delay1 = (pattern1[step_] & MASK_GATE1_DELAY) ? DELAY : 0.0f;
+    float delay2 = (pattern1[step_] & MASK_GATE2_DELAY) ? DELAY : 0.0f;
+
     if (pattern1[step_] & MASK_GATE1_ON) {
-      gate1_->Trigger(0.5f, 0.0f);
+      gate1_->Trigger(LENGTH_ONESHOT, delay1);
     }
 
     if (pattern1[step_] & MASK_GATE2_ON) {
-      gate2_->Trigger(0.5f, 0.0f);
+      gate2_->Trigger(LENGTH_ONESHOT, delay2);
     }
 
-    step_++;
+    step_ = (step_ + 1) % max_step_;
   }
 
   gate1_->Process();
