@@ -15,15 +15,17 @@
 #define OFFSET_REVERB_CONTROL2   2
 #define OFFSET_REVERB_CONTROL3   3
 #define OFFSET_REVERB_CONTROL4   4
+#define OFFSET_ONESHOT_CONTROL   5
 // clang-format on
 
-const size_t num_controls = 5;
+const size_t num_controls = 6;
 uint8_t controls[num_controls] = {
     OFFSET_BITCRUSH_CONTROL, // bitcrush
     OFFSET_REVERB_CONTROL1,  // reverb
     OFFSET_REVERB_CONTROL2,  //
     OFFSET_REVERB_CONTROL3,  //
     OFFSET_REVERB_CONTROL4,  //
+    OFFSET_ONESHOT_CONTROL,  // oneshot length
 };
 
 using namespace daisysp;
@@ -44,11 +46,13 @@ static gasstove::Clock clock;
 static gasstove::Gate gate1, gate2;
 dsy_gpio gate_output1, gate_output2;
 
-uint32_t gate_end = 0;
+AnalogControl oneshot_control;
+Parameter oneshot;
 
 static void AudioCallback(float *in, float *out, size_t size) {
   float sig, sig_tmp, dry_rate, send_rate, wet1, wet2;
 
+  pattern.SetOneshotLength(oneshot.Process());
   for (size_t i = 0; i < size; i += 2) {
     sig = in[i];
 
@@ -114,7 +118,11 @@ int main(void) {
   verb_control4.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL4), sample_rate);
   verb_send.Init(verb_control4, 0.f, 1.0f, Parameter::LINEAR);
 
-  clock.Init(132.0f, sample_rate);
+  oneshot_control.Init(seed.adc.GetPtr(OFFSET_ONESHOT_CONTROL), sample_rate);
+  // oneshot.Init(oneshot_control, 0.125f, 0.150f, Parameter::LINEAR);
+  oneshot.Init(oneshot_control, 0.090f, 0.250f, Parameter::LINEAR);
+
+  clock.Init(140.0f, sample_rate);
 
   setup_gate_output(PIN_GATE_OUT1, &gate_output1);
   gate1.Init(sample_rate, &gate_output1);

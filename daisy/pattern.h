@@ -31,8 +31,7 @@ private:
   float phase_;         // 0-1
   float phase_inc_;     // phase increment of 1 step
 
-  float delay_; // gate delay in seconds
-  float swing_; // gate delay on even note
+  float oneshot_length_;
 
 public:
   Pattern(){};
@@ -46,7 +45,7 @@ public:
 
   inline void SetSteps(uint8_t max_step) { max_step_ = max_step; }
 
-  inline void SetSwing(float swing) { swing_ = swing; }
+  inline void SetOneshotLength(float length) { oneshot_length_ = length; };
 };
 
 } // namespace gasstove
