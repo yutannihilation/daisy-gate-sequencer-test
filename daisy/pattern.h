@@ -19,6 +19,7 @@ private:
   Gate *gate1_;       // gate1
   Gate *gate2_;       // gate2
   float sample_rate_; // sample rate
+  uint8_t max_step_;  // max step
   uint8_t step_;      // current step
 
 public:
@@ -30,6 +31,8 @@ public:
   void Process();
 
   void Reset();
+
+  inline void SetSteps(uint8_t max_step) { max_step_ = max_step; }
 };
 
 } // namespace gasstove
