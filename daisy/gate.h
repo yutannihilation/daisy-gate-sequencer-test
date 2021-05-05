@@ -5,7 +5,7 @@
 #include <stdint.h>
 #ifdef __cplusplus
 
-namespace gate {
+namespace gasstove {
 
 enum GateState {
   GATE_OFF,
@@ -35,7 +35,7 @@ private:
   uint8_t state_;     // whether the gate is on or offf
 };
 
-} // namespace gate
+} // namespace gasstove
 
 #endif
 #endif

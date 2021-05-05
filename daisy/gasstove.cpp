@@ -37,7 +37,7 @@ AnalogControl verb_control1, verb_control2, verb_control3, verb_control4;
 Parameter verb_feedback, verb_lp_freq, verb_mix, verb_send;
 
 static Metro clock;
-static gate::Gate gate1, gate2;
+static gasstove::Gate gate1, gate2;
 dsy_gpio gate_output1, gate_output2;
 
 uint32_t gate_end = 0;

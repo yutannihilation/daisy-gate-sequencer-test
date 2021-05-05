@@ -1,8 +1,8 @@
 # Project Name
-TARGET = daisy
+TARGET = gasstove
 
 # Sources
-CPP_SOURCES = daisy.cpp gate.cpp
+CPP_SOURCES = gasstove.cpp gate.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../lib/libDaisy

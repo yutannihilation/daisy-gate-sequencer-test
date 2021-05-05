@@ -1,6 +1,6 @@
 #include "gate.h"
 
-using namespace gate;
+using namespace gasstove;
 
 void Gate::Init(float sample_rate, dsy_gpio *pin) {
   pin_ = pin;
