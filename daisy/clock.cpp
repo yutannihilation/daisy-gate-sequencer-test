@@ -10,7 +10,7 @@ void Clock::Init(float bpm, float sample_rate) {
   bpm_ = bpm;
   phs_ = 0.0f;
   sample_rate_ = sample_rate;
-  phs_inc_ = 60.0f / (bpm_ * sample_rate_);
+  phs_inc_ = bpm_ / 60.0f / sample_rate_;
 }
 
 uint8_t Clock::Process() {
@@ -24,5 +24,5 @@ uint8_t Clock::Process() {
 
 void Clock::SetBpm(float bpm) {
   bpm_ = bpm;
-  phs_inc_ = 60.0f / (bpm_ * sample_rate_);
+  phs_inc_ = bpm_ / 60.0f / sample_rate_;
 }
