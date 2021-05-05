@@ -17,17 +17,6 @@
 * 動かす予定のものは今の所2台。それぞれラグが違うけど、1音目は割と揃いそう。バーストの間隔はそれぞれ違いそう。
 * ゲートはPWMも出したい。ただし、ゲートで開閉するリレーの特性上、間隔は10ms以上あける。
 
-## TODO
-
-- [ ] bpm
-- [ ] note on/off
-- [ ] probability
-- [ ] swing
-- [ ] burst length
-- [ ] burst density
-- [ ] envelope follower（これは外部に置いたほうが便利？）
-- [ ] voltage control（ツマミでコントロールするのも）
-
 ## 参考リンク
 
 * DaisyExamples:
