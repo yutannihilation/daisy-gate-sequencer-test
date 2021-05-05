@@ -18,20 +18,16 @@ struct SubStep {
   float length; // gate length **in seconds**
 };
 
-struct SubStepPattern {
-  uint8_t n;
-  SubStep substeps[4];
+// clang-format off
+SubStep substep_pattern1[] = {
+    SubStep{0.0f, LENGTH_ONESHOT},
+    SubStep{0.0f, LENGTH_ONESHOT},
+    SubStep{0.5f, LENGTH_ONESHOT},
+    SubStep{0.75f, LENGTH_ONESHOT},
+    // TODO: indicate 1.0f as the end of the substeps
+    SubStep{1.0f, 0.0f},
 };
-
-SubStepPattern substep_pattern1 = {
-  n : 4,
-  substeps : {
-      SubStep{0.0f, LENGTH_ONESHOT},
-      SubStep{0.0f, LENGTH_ONESHOT},
-      SubStep{0.5f, LENGTH_ONESHOT},
-      SubStep{0.75f, LENGTH_ONESHOT},
-  }
-};
+// clang-format on
 
 void Pattern::Init(float sample_rate, Clock *clock, Gate *gate1, Gate *gate2) {
   sample_rate_ = sample_rate;
@@ -53,10 +49,9 @@ void Pattern::Process() {
     cur_substep_ = 0;
   }
 
-  if (substep_pattern1.substeps[cur_substep_].start <= clock_->GetPhase() &&
-      cur_substep_ < substep_pattern1.n) {
-    gates_[cur_gate_]->Trigger(substep_pattern1.substeps[cur_substep_].length,
-                               0.0f);
+  if (substep_pattern1[cur_substep_].start <= 1.0f &&
+      substep_pattern1[cur_substep_].start <= clock_->GetPhase()) {
+    gates_[cur_gate_]->Trigger(substep_pattern1[cur_substep_].length, 0.0f);
     cur_gate_ = (cur_gate_ + 1) % num_of_gates;
     cur_substep_ = (cur_substep_ + 1);
   }
