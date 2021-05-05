@@ -112,7 +112,7 @@ int main(void) {
   verb_control4.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL4), sample_rate);
   verb_send.Init(verb_control4, 0.f, 1.0f, Parameter::LINEAR);
 
-  clock.Init(13.5f, sample_rate);
+  clock.Init(3.0f, sample_rate);
 
   setup_gate_output(PIN_GATE_OUT1, &gate_output1);
   gate1.Init(sample_rate, &gate_output1);

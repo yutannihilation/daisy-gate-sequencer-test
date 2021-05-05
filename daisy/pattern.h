@@ -12,15 +12,22 @@ using namespace daisysp;
 
 namespace gasstove {
 
+const int num_of_gates = 2;
+
 class Pattern {
 
 private:
-  Metro *clock_;      // master clock
-  Gate *gate1_;       // gate1
-  Gate *gate2_;       // gate2
   float sample_rate_; // sample rate
-  uint8_t max_step_;  // max step
-  uint8_t step_;      // current step
+
+  Metro *clock_;              // master clock
+  Gate *gates_[num_of_gates]; // gates
+  uint8_t cur_gate_;          // 0 or 1
+
+  uint8_t max_step_; // max step
+  uint8_t cur_step_; // current step
+
+  float delay_; // gate delay in seconds
+  float swing_; // gate delay on even note
 
 public:
   Pattern(){};
@@ -33,6 +40,8 @@ public:
   void Reset();
 
   inline void SetSteps(uint8_t max_step) { max_step_ = max_step; }
+
+  inline void SetSwing(float swing) { swing_ = swing; }
 };
 
 } // namespace gasstove
