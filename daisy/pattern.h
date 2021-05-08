@@ -39,7 +39,7 @@ public:
 
   void Init(float sample_rate, Clock *clock, Gate *gate1, Gate *gate2);
 
-  void Process();
+  void Process(bool mute);
 
   void Reset();
 

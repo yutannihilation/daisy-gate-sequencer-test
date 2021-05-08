@@ -60,7 +60,7 @@ void Pattern::Init(float sample_rate, Clock *clock, Gate *gate1, Gate *gate2) {
   Pattern::Reset();
 }
 
-void Pattern::Process() {
+void Pattern::Process(bool mute) {
   if (clock_->Process()) {
     cur_step_ = (cur_step_ + 1) % max_step_;
     cur_substep_ = 0;
@@ -83,7 +83,10 @@ void Pattern::Process() {
       break;
     }
 
-    gates_[cur_gate_]->Trigger(gate_length, ptn[cur_substep_].delay);
+    if (!mute) {
+      gates_[cur_gate_]->Trigger(gate_length, ptn[cur_substep_].delay);
+    }
+
     cur_gate_ = (cur_gate_ + 1) % num_of_gates;
     cur_substep_ = (cur_substep_ + 1);
   }
@@ -97,7 +100,7 @@ void Pattern::Reset() {
   clock_->Reset();
 
   for (uint8_t i = 0; i < num_of_gates; i++) {
-    gates_[i]->Process();
+    gates_[i]->Reset();
   }
 
   cur_gate_ = 0;

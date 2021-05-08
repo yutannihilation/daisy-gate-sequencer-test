@@ -16,6 +16,10 @@
 #define OFFSET_REVERB_CONTROL3   3
 #define OFFSET_REVERB_CONTROL4   4
 #define OFFSET_ONESHOT_CONTROL   5
+
+// ボタンは、オンになるとグランド。DaisyExamples/seed/Button の例と同じ。
+#define PIN_BEAT_ON_BUTTON  21
+#define PIN_REVERB_BUTTON   22
 // clang-format on
 
 const size_t num_controls = 6;
@@ -41,6 +45,8 @@ static ReverbSc verb;
 AnalogControl verb_control1, verb_control2, verb_control3, verb_control4;
 Parameter verb_feedback, verb_lp_freq, verb_mix, verb_send;
 
+Switch button1, button2;
+
 static gasstove::Pattern pattern;
 static gasstove::Clock clock;
 static gasstove::Gate gate1, gate2;
@@ -52,14 +58,23 @@ Parameter oneshot;
 static void AudioCallback(float *in, float *out, size_t size) {
   float sig, sig_tmp, dry_rate, send_rate, wet1, wet2;
 
+  button1.Debounce();
+  button2.Debounce();
+
   pattern.SetOneshotLength(oneshot.Process());
   for (size_t i = 0; i < size; i += 2) {
     sig = in[i];
 
-    pattern.Process();
+    pattern.Process(!button1.Pressed());
 
     dry_rate = verb_mix.Process();
-    send_rate = verb_send.Process();
+
+    if (button2.Pressed()) {
+      send_rate = verb_send.Process();
+    } else {
+      send_rate = 0.0f;
+    }
+
     bitcrush.SetFreq(bitcrush_rate.Process());
 
     sig = bitcrush.Process(sig);
@@ -92,6 +107,7 @@ int main(void) {
   seed.Init();
   sample_rate = seed.AudioSampleRate();
 
+  // ADC
   AdcChannelConfig adcConfig[num_controls];
   for (uint8_t i = 0; i < num_controls; i++) {
     setup_adcConfig(adcConfig, controls[i]);
@@ -118,6 +134,9 @@ int main(void) {
   verb_control4.Init(seed.adc.GetPtr(OFFSET_REVERB_CONTROL4), sample_rate);
   verb_send.Init(verb_control4, 0.f, 1.0f, Parameter::LINEAR);
 
+  button1.Init(seed.GetPin(PIN_BEAT_ON_BUTTON), 1000);
+  button2.Init(seed.GetPin(PIN_REVERB_BUTTON), 1000);
+
   oneshot_control.Init(seed.adc.GetPtr(OFFSET_ONESHOT_CONTROL), sample_rate);
   // oneshot.Init(oneshot_control, 0.125f, 0.150f, Parameter::LINEAR);
   oneshot.Init(oneshot_control, 0.090f, 0.250f, Parameter::LINEAR);
@@ -133,6 +152,7 @@ int main(void) {
 
   // start callback
   seed.adc.Start();
+
   seed.StartAudio(AudioCallback);
 
   while (1) {
