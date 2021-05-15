@@ -24,11 +24,11 @@ bool Gate::Process() {
   if (trigger_) {
     trigger_ = 0;
 
-    // do not retrigger!
-    if (state_ == GATE_OFF) {
-      state_ = GATE_ON;
-      ellapsed_ = 0.0f;
-    }
+    // Uncomment this if-statement for prohibiting retrigger
+    // if (state_ == GATE_OFF) {
+    state_ = GATE_ON;
+    ellapsed_ = 0.0f;
+    // }
   }
 
   if (state_ == GATE_ON) {
