@@ -66,6 +66,7 @@ static void AudioCallback(float *in, float *out, size_t size) {
     sig = in[i];
 
     pattern.Process(!button1.Pressed());
+    // pattern.Process(false);
 
     dry_rate = verb_mix.Process();
 
@@ -138,10 +139,10 @@ int main(void) {
   button2.Init(seed.GetPin(PIN_REVERB_ON_BUTTON), 1000);
 
   oneshot_control.Init(seed.adc.GetPtr(OFFSET_ONESHOT_CONTROL), sample_rate);
-  oneshot.Init(oneshot_control, 0.090f, 0.250f, Parameter::LINEAR);
+  oneshot.Init(oneshot_control, 0.05f, 0.4f, Parameter::LINEAR);
 
   bpm_control.Init(seed.adc.GetPtr(OFFSET_BPM_CONTROL), sample_rate);
-  bpm.Init(bpm_control, 10.0f, 300.0f, Parameter::LINEAR);
+  bpm.Init(bpm_control, 10.0f, 180.0f, Parameter::LINEAR);
 
   clock.Init(120.0f, sample_rate);
 
